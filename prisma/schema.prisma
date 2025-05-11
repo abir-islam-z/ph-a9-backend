@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  seed     = "ts-node prisma/seed.ts"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
+}
+
+// User model
+model User {
+  id                   String        @id @default(uuid())
+  name                 String
+  email                String        @unique
+  password             String
+  role                 UserRole      @default(USER)
+  isBlocked            Boolean       @default(false)
+  isPremium            Boolean       @default(false)
+  subscriptionExpiryDate DateTime?
+  passwordChangedAt    DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  foodSpots            FoodSpot[]
+  reviews              Review[]
+  votes                Vote[]
+  payments             Payment[]
+
+  @@map("users")
+}
+
+// Food Spot model
+model FoodSpot {
+  id                   String        @id @default(uuid())
+  title                String
+  description          String
+  location             String
+  minPrice             Float
+  maxPrice             Float
+  category             FoodCategory
+  image                String
+  approvalStatus       ApprovalStatus @default(PENDING)
+  isPremium            Boolean       @default(false)
+  rejectionReason      String?
+  creatorId            String
+  totalRating          Float         @default(0)
+  totalUpvotes         Int           @default(0)
+  totalDownvotes       Int           @default(0)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  creator              User          @relation(fields: [creatorId], references: [id])
+  reviews              Review[]
+  votes                Vote[]
+
+  @@map("food_spots")
+}
+
+// Review model
+model Review {
+  id                   String        @id @default(uuid())
+  rating               Float
+  comment              String
+  userId               String
+  foodSpotId           String
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  user                 User          @relation(fields: [userId], references: [id])
+  foodSpot             FoodSpot      @relation(fields: [foodSpotId], references: [id])
+
+  @@map("reviews")
+}
+
+// Vote model
+model Vote {
+  id                   String        @id @default(uuid())
+  type                 VoteType
+  userId               String
+  foodSpotId           String
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  user                 User          @relation(fields: [userId], references: [id])
+  foodSpot             FoodSpot      @relation(fields: [foodSpotId], references: [id])
+
+  @@unique([userId, foodSpotId])
+  @@map("votes")
+}
+
+// Payment model for premium subscriptions
+model Payment {
+  id                   String        @id @default(uuid())
+  userId               String
+  planId               String
+  amount               Float
+  currency             String        @default("BDT")
+  status               PaymentStatus @default(PENDING)
+  paymentMethod        String        @default("sslcommerz")
+  transactionId        String?
+  paymentGatewayData   Json?
+  durationInDays       Int
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  user                 User          @relation(fields: [userId], references: [id])
+
+  @@map("payments")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  USER
+  PREMIUM
+}
+
+enum FoodCategory {
+  SNACKS
+  MEALS
+  SWEETS
+  DRINKS
+  BREAKFAST
+  LUNCH
+  DINNER
+  DESSERTS
+  STREET_FOOD
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
