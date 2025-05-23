@@ -84,7 +84,7 @@ const getAllFoodSpots = async (
 
 const getFoodSpotById = async (id: string) => {
   const foodSpot = await prisma.foodSpot.findUnique({
-    where: { id },
+    where: { id, approvalStatus: ApprovalStatus.APPROVED },
     include: {
       creator: {
         select: {
@@ -260,7 +260,7 @@ const addReview = async (
   payload: ICreateReview,
 ) => {
   const foodSpot = await prisma.foodSpot.findUnique({
-    where: { id: foodSpotId },
+    where: { id: foodSpotId, approvalStatus: ApprovalStatus.APPROVED },
   });
 
   if (!foodSpot) {
@@ -305,7 +305,7 @@ const addVote = async (
   payload: ICreateVote,
 ) => {
   const foodSpot = await prisma.foodSpot.findUnique({
-    where: { id: foodSpotId },
+    where: { id: foodSpotId, approvalStatus: ApprovalStatus.APPROVED },
   });
 
   if (!foodSpot) {

@@ -53,7 +53,6 @@ const logger = winston.createLogger({
 
 // Add a special method for title-style logs with separator lines
 interface CustomLogger extends winston.Logger {
-  // eslint-disable-next-line no-unused-vars
   title: (message: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   morganMiddleware: any;

@@ -5,7 +5,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../config';
 import prisma from '../config/prisma';
 import AppError from '../errors/AppError';
-import { DecodedJWTPayload } from '../interface/jwtdecoded';
 import catchAsync from '../utils/catchAsync';
 
 const auth = (...requiredRoles: UserRole[]) => {
@@ -46,7 +45,12 @@ const auth = (...requiredRoles: UserRole[]) => {
         throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
       }
 
-      req.user = decoded as DecodedJWTPayload;
+      req.user = {
+        id: userId,
+        role,
+        iat: decoded.iat!,
+        exp: decoded.exp!,
+      };
       next();
     },
   );
